@@ -1,7 +1,7 @@
 #include <FlexiTimer2.h>
 
 #include <avr/io.h>
-
+//滤波后都只剩下50hz的频率 
 unsigned int frq = 62500;  // PWM周波数。60kHzあたりまで機能するが、マージンとって50kHzとする。
 float duty = 0.5;          // duty比率
 int count = 0;
