@@ -43,10 +43,14 @@ void setup() {
 
   TCCR2A = _BV(COM2A1) | _BV(COM2B1) | _BV(WGM21) | _BV(WGM20);
   TCCR2B = _BV(CS22);
-  // TCCR2B = TCCR2B & 0b11111000 | 0x01;//31250hz
+  // // TCCR2B = TCCR2B & 0b11111000 | 0x01;//31250hz
 
   OCR2A = 180;
   OCR2B = 50;
+  // timer1 = micros();
+  // timer2 = micros();
+  // TCCR1B &= B11111000;//fast pwm setting
+  // TCCR1B |= B00000001;//fast pwm setting
 }
 
 void loop() {
