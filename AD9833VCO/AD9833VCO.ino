@@ -67,7 +67,7 @@ void loop() {
     timer = millis();
   }
 
-  CV = analogRead(6);  //如果cv是a2 则可以将其他a引脚相接进行混沌调制 如果cv是a6则使用外部输入信号调制
+  CV = analogRead(6) / 4;  //如果cv是a2 则可以将其他a引脚相接进行混沌调制 如果cv是a6则使用外部输入信号调制
   freq_pot = analogRead(0) / 4;
 
   //------------------frequency set----------------
@@ -126,10 +126,10 @@ void loop() {
 
 
   Serial.print("CV= ");
-  Serial.println(CV);
-  Serial.print("freq_knob= ");
-  Serial.println(freq_pot);
-  Serial.print("freq= ");
+  Serial.print(CV);
+  Serial.print(" freq_knob= ");
+  Serial.print(freq_pot);
+  Serial.print(" freq= ");
   Serial.println(freq);
 }
 
