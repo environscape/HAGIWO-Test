@@ -66,6 +66,7 @@ const static word squ[1000] PROGMEM = {
 };
 long timer2 = 0;
 
+int a3 = 0;
 void setup() {
 
   pinMode(PWMPin, OUTPUT);
@@ -87,7 +88,7 @@ void setup() {
   // TCCR1B = 0b00010001;
   // timer2 = micros();
 }
-
+0
 void loop() {
   old_ext_pulse = ext_pulse;
   ext_pulse = digitalRead(EXTCLKPin);
@@ -101,7 +102,10 @@ void loop() {
   Serial.print("  amp= ");
   Serial.print(amp);
   Serial.print("  ext_injudge= ");
-  Serial.println(ext_injudge);
+  Serial.print(ext_injudge);
+  Serial.print("  freq mod= ");
+  a3 = analogRead(3) >> 8;
+  Serial.println(a3);
 
   // Serial.print("loop a7= ");
   // Serial.println(analogRead(7));
@@ -143,6 +147,7 @@ void loop() {
     phase = 0;
     //    freq_max = 1+(analogRead(KNOBPIN1))/5;
     freq_max = 1 + 0.0007 * analogRead(KNOBPIN1) * analogRead(KNOBPIN1) / 32;
+    freq_max = freq_max - a3;
   } else if (ext_injudge == 1) {  //use external clock , phase function on
     phase = map(analogRead(KNOBPIN1), 0, 1023, 0, 999);
   }
