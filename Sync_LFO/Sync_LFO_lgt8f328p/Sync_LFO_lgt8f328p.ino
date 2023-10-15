@@ -88,7 +88,7 @@ void setup() {
   // TCCR1B = 0b00010001;
   // timer2 = micros();
 }
-0
+
 void loop() {
   old_ext_pulse = ext_pulse;
   ext_pulse = digitalRead(EXTCLKPin);
