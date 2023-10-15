@@ -38,19 +38,18 @@ void setup() {
   timer2 = micros();
   TCCR1B &= B11111000;  //fast pwm setting
   TCCR1B |= B00000001;  //fast pwm setting
-  //  Serial.begin(9600);
-    Serial.begin(115200);
-delay(50);
-
+                        //  Serial.begin(9600);
+  Serial.begin(115200);
+  delay(50);
 }
 
 void loop() {
-  Serial.println("11");//用来串口打印信息，其自带换行，可不用在结尾添加\n
+  Serial.println("11");  //用来串口打印信息，其自带换行，可不用在结尾添加\n
 
   old_in1 = in1;
   old_in2 = in2;
   in1 = digitalRead(2);  // trig input
-  in2 = digitalRead(4);   // trig input
+  in2 = digitalRead(4);  // trig input
   // in1 = digitalRead(11);  // trig input
   // in2 = digitalRead(3);   // trig input
 
@@ -62,10 +61,10 @@ void loop() {
     }
     i = 0;       //wave table count reset
     count1 = 1;  //start attack duration
-    atk1 = analogRead(0) * 12;
-    rel1 = analogRead(1) * 16;
-    lev1 = analogRead(1) / 4;
-    con1 = analogRead(1) / 64;
+    atk1 = analogRead(0) * 12 / 4;
+    rel1 = analogRead(1) * 16 / 4;
+    lev1 = analogRead(1) / 4 / 4;
+    con1 = 4;
     // atk1 = analogRead(1) * 12;
     // rel1 = analogRead(2) * 16;
     // lev1 = analogRead(4) / 4;
@@ -86,10 +85,10 @@ void loop() {
     }
     j = 0;       //wave table count reset
     count2 = 1;  //start attack duration
-    atk2 = analogRead(3) * 12;
-    rel2 = (4096 - analogRead(3)) * 16;
-    lev2 = 4096 - analogRead(3) / 4;
-    con2 = 4096 - analogRead(3) / 64;
+    atk2 = analogRead(3) * 12 / 4;
+    rel2 = (4096 - analogRead(3)) * 16 / 4;
+    lev2 = 4096 - analogRead(3) / 4 / 4;
+    con2 = 12;
     // atk2 = analogRead(0) * 12;
     // rel2 = analogRead(3) * 16;
     // lev2 = analogRead(5) / 4;
@@ -157,8 +156,13 @@ void PWM_OUT() {  //PWM duty setting
   } else if (count2 == 2) {
     out2 = map(out2, 0, 255, 0, lev2);
   }
-  analogWrite(3, out1);  //PWM output
+  analogWrite(3, out1);   //PWM output
   analogWrite(5, out2);   //PWM output
+  Serial.print("out1 ");  //用来串口打印信息，其自带换行，可不用在结尾添加\n
+  Serial.println(out1);   //用来串口打印信息，其自带换行，可不用在结尾添加\n
+  Serial.print("out2 ");  //用来串口打印信息，其自带换行，可不用在结尾添加\n
+  Serial.println(out2);   //用来串口打印信息，其自带换行，可不用在结尾添加\n
+
   // analogWrite(10, out1);  //PWM output
   // analogWrite(9, out2);   //PWM output
 }
