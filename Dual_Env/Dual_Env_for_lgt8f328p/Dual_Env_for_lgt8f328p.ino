@@ -126,7 +126,7 @@ void loop() {
 
   //----------------------CV output buffer CH2-------------------------
   if (count2 == 1) {   //attack
-    if (atk2 <= 32) {  //Minimize atk time
+    if (atk2 <= 96) {  //Minimize atk time
       j = 128;
       count2 = 2;
     }
