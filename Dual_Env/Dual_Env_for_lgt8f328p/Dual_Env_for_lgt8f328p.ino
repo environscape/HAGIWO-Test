@@ -64,7 +64,8 @@ void loop() {
     count1 = 1;                              //start attack duration
     atk1 = (3500 - analogRead(0)) * 12 / 4;  //0-12000
     rel1 = (4096 - analogRead(1)) * 16 / 4;  //0-16000
-    lev1 = (4096 - analogRead(1)) / 4 / 4;   //0-64
+    // lev1 = (4096 - analogRead(1)) / 4 / 4;   //0-64
+    lev1 = 64;   //0-64
     con1 = 4;
     // atk1 = analogRead(1) * 12;
     // rel1 = analogRead(2) * 16;
@@ -87,8 +88,8 @@ void loop() {
     j = 0;                                       //wave table count reset
     count2 = 1;                                  //start attack duration
     atk2 = (4096 - analogRead(3)) * 12 / 4;      //0-12000
-    rel2 = (4500 - analogRead(3) / 2) * 16 / 4;  //
-    lev2 = 48;
+    rel2 = (4800 - analogRead(3) / 2) * 16 / 4;  //
+    lev2 = 64;
     con2 = 10;
     // atk2 = analogRead(0) * 12;
     // rel2 = analogRead(3) * 16;

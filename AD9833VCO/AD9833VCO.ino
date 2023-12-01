@@ -119,14 +119,16 @@ void loop() {
   }
 
   if (range == 0 || range == 2 || range == 4)
-    digitalWrite(6, HIGH);
+    digitalWrite(12, HIGH);//旧的蓝色板d12 新的d6
   else
-    digitalWrite(6, LOW);
+    digitalWrite(12, LOW);
   AD9833setFrequency(freq, waveType);  // Set the frequency and Sine Wave output
 
 
   Serial.print("CV= ");
   Serial.print(CV);
+  Serial.print(" a0= ");
+  Serial.print(analogRead(0));
   Serial.print(" freq_knob= ");
   Serial.print(freq_pot);
   Serial.print(" freq= ");
