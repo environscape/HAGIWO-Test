@@ -3,6 +3,7 @@
 
 #define PWMPin 10     //输出信号    Output
 #define EXTCLKPin 12  //输入时钟    Clk In
+#define CVINPin 3     //输入压控    CV In
 #define KNOBPIN1 7    //旋钮1       Freq/Phase/Amp
 #define KNOBPIN2 5    //旋钮2       WaveType
 #define KNOBPIN3 0    //旋钮3       Modulation
@@ -104,7 +105,7 @@ void loop() {
   Serial.print("  ext_injudge= ");
   Serial.print(ext_injudge);
   Serial.print("  freq mod= ");
-  a3 = analogRead(3) >> 8;
+  a3 = analogRead(CVINPin) >> 8;
   Serial.println(a3);
 
   // Serial.print("loop a7= ");
@@ -207,7 +208,7 @@ void loop() {
   this_am = map(amp, 0, 1023, 1, 100);
   amp_rate = (float)this_am / 100;
 
-  int this_v = 1024 - analogRead(KNOBPIN1) / lgt8f328p;
+  int this_v = analogRead(KNOBPIN1) / lgt8f328p;
   int knob1_dec = analogRead(KNOBPIN1) - tmp_a1;
 
   //amp test
