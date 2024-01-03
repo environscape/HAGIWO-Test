@@ -208,7 +208,7 @@ void loop() {
   this_am = map(amp, 0, 1023, 1, 100);
   amp_rate = (float)this_am / 100;
 
-  int this_v = analogRead(KNOBPIN1) / lgt8f328p;
+  int this_v = 1024 - analogRead(KNOBPIN1) / lgt8f328p;  //这里还是要改回来吧
   int knob1_dec = analogRead(KNOBPIN1) - tmp_a1;
 
   //amp test
