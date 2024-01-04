@@ -147,7 +147,7 @@ void loop() {
   if (ext_injudge == 0) {  //use internal clock , phase function off
     phase = 0;
     //    freq_max = 1+(analogRead(KNOBPIN1))/5;
-    freq_max = 1 + 0.0007 * analogRead(KNOBPIN1) * analogRead(KNOBPIN1) / 32;
+    freq_max = 1 + 0.0007 * (4096 - analogRead(KNOBPIN1)) * (4096 - analogRead(KNOBPIN1)) / 32;
     freq_max = freq_max - a3;
   } else if (ext_injudge == 1) {  //use external clock , phase function on
     phase = map(analogRead(KNOBPIN1), 0, 1023, 0, 999);
@@ -208,7 +208,7 @@ void loop() {
   this_am = map(amp, 0, 1023, 1, 100);
   amp_rate = (float)this_am / 100;
 
-  int this_v = 1024 - analogRead(KNOBPIN1) / lgt8f328p;  //这里还是要改回来吧
+  int this_v = analogRead(KNOBPIN1) / lgt8f328p;  //这里还是要改回来吧
   int knob1_dec = analogRead(KNOBPIN1) - tmp_a1;
 
   //amp test
