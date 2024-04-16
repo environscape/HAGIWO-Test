@@ -15,9 +15,9 @@
 //时钟调试
 
 
-unsigned int frq = 50000;  // PWM频率。作用到60kHz左右，但取余量为50kHz。
-float duty = 0.5;          // duty比率
-int count = 0;
+unsigned int pwm_freq = 50000;  // PWM频率。作用到60kHz左右，但取余量为50kHz。
+float duty = 0.5;               // duty比率
+int wavePosition = 0;//wavePosition
 
 byte waveType = 1;  //
 //0=saw1
@@ -38,7 +38,7 @@ int a0 = 256;  //临时记录a0脚得值
 
 float amp_rate = 1.0;
 int phase = 1;
-int mod = 0;  //self modulation
+int modulation = 0;  //self modulation
 
 bool ext_injudge = 0;  //0=use internal clock , 1 = use external clock
 bool ext_pulse = 0;    //0=no external in
@@ -81,8 +81,8 @@ void setup() {
   Serial.println("setup!");
 
   // モード指定 hagiwo org
-  // TCCR1A = 0b00100001;
-  // TCCR1B = 0b00010001;  //分周比1
+  TCCR1A = 0b00100001;
+  TCCR1B = 0b00010001;  //分周比1
 
   //新的快速pwm
   // TCCR1A = 0b00100011;
@@ -98,8 +98,8 @@ void loop() {
   Serial.print(freq_max);
   Serial.print("  wave= ");
   Serial.print(waveType);
-  Serial.print("  modu= ");
-  Serial.print(mod);
+  Serial.print("  modulation= ");
+  Serial.print(modulation);
   Serial.print("  amp= ");
   Serial.print(amp);
   Serial.print("  ext_injudge= ");
@@ -125,7 +125,7 @@ void loop() {
   int lgt8f328p = 4;  //  lgt8f328p =4 arduion nano =1;
 
 
-  //------------wave select-------------------------------
+  //------------waveType select-------------------------------
   if (analogRead(KNOBPIN2) < 66 * lgt8f328p) {
     waveType = 255;  //hold v
   } else if (analogRead(KNOBPIN2) >= 66 * lgt8f328p && analogRead(KNOBPIN2) < 155 * lgt8f328p) {
@@ -157,43 +157,43 @@ void loop() {
 
   //------------selc modulation-------------------------------
   if (analogRead(KNOBPIN3) >= 939 * lgt8f328p) {
-    mod = 0;  //no modulation
+    modulation = 0;  //no modulation
   } else if (analogRead(KNOBPIN3) >= 771 * lgt8f328p && analogRead(KNOBPIN3) < 939 * lgt8f328p) {
-    mod = 1;  //saw1
+    modulation = 1;  //saw1
   } else if (analogRead(KNOBPIN3) >= 571 * lgt8f328p && analogRead(KNOBPIN3) < 771 * lgt8f328p) {
-    mod = 2;  //saw2
+    modulation = 2;  //saw2
   } else if (analogRead(KNOBPIN3) >= 352 * lgt8f328p && analogRead(KNOBPIN3) < 571 * lgt8f328p) {
-    mod = 3;  //sin
+    modulation = 3;  //sin
   } else if (analogRead(KNOBPIN3) >= 155 * lgt8f328p && analogRead(KNOBPIN3) < 352 * lgt8f328p) {
-    mod = 4;  //tri
+    modulation = 4;  //tri
   } else if (analogRead(KNOBPIN3) >= 31 * lgt8f328p && analogRead(KNOBPIN3) < 155 * lgt8f328p) {
-    mod = 5;  //squ
+    modulation = 5;  //squ
   } else if (analogRead(KNOBPIN3) < 31 * lgt8f328p) {
-    mod = 6;  //random
+    modulation = 6;  //random
   }
 
-  switch (mod) {
+  switch (modulation) {
     case 0:
       break;
 
     case 1:
-      phase = phase + (pgm_read_word(&(saw1[count])));
+      phase = phase + (pgm_read_word(&(saw1[wavePosition])));
       break;
 
     case 2:
-      phase = phase + (pgm_read_word(&(saw2[count])));
+      phase = phase + (pgm_read_word(&(saw2[wavePosition])));
       break;
 
     case 3:
-      phase = phase + (pgm_read_word(&(sine[count])));
+      phase = phase + (pgm_read_word(&(sine[wavePosition])));
       break;
 
     case 4:
-      phase = phase + (pgm_read_word(&(tri[count])));
+      phase = phase + (pgm_read_word(&(tri[wavePosition])));
       break;
 
     case 5:
-      phase = phase + (pgm_read_word(&(squ[count])));
+      phase = phase + (pgm_read_word(&(squ[wavePosition])));
       break;
 
     case 6:
@@ -249,17 +249,18 @@ void loop() {
 
   if (old_ext_pulse == 0 && ext_pulse == 1) {  //外部入力が有→無のとき
     ext_count = 0;
-    count = 0;
+    wavePosition = 0;
   }
   // モード指定
   TCCR1A = 0b00100001;
   TCCR1B = 0b00010001;  //分周比1
 
   // TOP値指定
-  OCR1A = (unsigned int)(8000000 / frq);
+  OCR1A = (unsigned int)(8000000 / pwm_freq);
 
   // Duty比指定
-  OCR1B = (unsigned int)(8000000 / frq * duty * amp_rate);
+  OCR1B = (unsigned int)(8000000 / pwm_freq * duty * amp_rate);  //这里相当于analogWrite(10);
+  analogWrite(11, 152);                                          //对第D11引脚进行反向输出
 }
 
 void timer_count() {
@@ -270,38 +271,38 @@ void timer_count() {
   if (set_freq >= freq_max) {
     set_freq = 0;
 
-    count++;
-    if (count + phase >= 1000 && waveType != 5) {
-      count = count - 1000;
+    wavePosition++;//波表next
+    if (wavePosition + phase >= 1000 && waveType != 5) {
+      wavePosition = wavePosition - 1000;
     }
 
     switch (waveType) {
       case 0:
-        duty = (float)(pgm_read_word(&(saw1[count + phase]))) / 1000;
+        duty = (float)(pgm_read_word(&(saw1[wavePosition + phase]))) / 1000;
         break;
 
       case 1:
-        duty = (float)(pgm_read_word(&(saw2[count + phase]))) / 1000;
+        duty = (float)(pgm_read_word(&(saw2[wavePosition + phase]))) / 1000;
         break;
 
       case 2:
-        duty = (float)(pgm_read_word(&(sine[count + phase]))) / 1000;
+        duty = (float)(pgm_read_word(&(sine[wavePosition + phase]))) / 1000;
         break;
 
       case 3:
-        duty = (float)(pgm_read_word(&(tri[count + phase]))) / 1000;
+        duty = (float)(pgm_read_word(&(tri[wavePosition + phase]))) / 1000;
         break;
 
       case 4:
-        duty = (float)(pgm_read_word(&(squ[count + phase]))) / 1000;
+        duty = (float)(pgm_read_word(&(squ[wavePosition + phase]))) / 1000;
         break;
     }
 
     //random
     if (waveType == 5) {
-      count++;
-      if (count >= 250) {
-        count = 0;
+      wavePosition++;
+      if (wavePosition >= 250) {
+        wavePosition = 0;
         duty = random(1, 1000);
         duty = duty / 1000;
       }
