@@ -1,13 +1,12 @@
 #include <FlexiTimer2.h>
 #include <avr/io.h>
 
-#define PWMPIN 10    //输出信号    Output
-#define PWMPIN2 11   //输出信号    Output2
-#define EXTCLKPin 3  //输入时钟    Clk In
-#define CVINPin 3    //输入压控    CV In
-#define KNOBPIN1 0   //旋钮1       Freq/Phase/Amp
-#define KNOBPIN2 1   //旋钮2       WaveType
-#define KNOBPIN3 2   //旋钮3       Modulation
+#define PWMPin 10     //输出信号    Output
+#define EXTCLKPin 12  //输入时钟    Clk In
+#define CVINPin 3     //输入压控    CV In
+#define KNOBPIN1 7    //旋钮1       Freq/Phase/Amp
+#define KNOBPIN2 5    //旋钮2       WaveType
+#define KNOBPIN3 0    //旋钮3       Modulation
 
 
 //获取到各个引脚并打印日志 ok
@@ -18,7 +17,7 @@
 
 unsigned int pwm_freq = 50000;  // PWM频率。作用到60kHz左右，但取余量为50kHz。
 float duty = 0.5;               // duty比率
-int wavePosition = 0;           //wavePosition
+int wavePosition = 0;//wavePosition
 
 byte waveType = 1;  //
 //0=saw1
@@ -71,9 +70,8 @@ long timer2 = 0;
 int a3 = 0;
 void setup() {
 
-  pinMode(PWMPIN, OUTPUT);
-  // pinMode(PWMPIN2, OUTPUT);
-  pinMode(CVINPin, INPUT);
+  pinMode(PWMPin, OUTPUT);
+  pinMode(3, INPUT);
 
   FlexiTimer2::set(5, 1.0 / 100000, timer_count);  // 50usec/count
   FlexiTimer2::start();
@@ -104,20 +102,28 @@ void loop() {
   Serial.print(modulation);
   Serial.print("  amp= ");
   Serial.print(amp);
-  // Serial.print("  ext_injudge= ");
-  // Serial.print(ext_injudge);
-  // Serial.print("  freq mod= ");
-  // Serial.println(a3);
+  Serial.print("  ext_injudge= ");
+  Serial.print(ext_injudge);
+  Serial.print("  freq mod= ");
+  a3 = analogRead(CVINPin) >> 8;
+  Serial.println(a3);
 
-  // Serial.print(" KNOBPIN1= ");
-  // Serial.print(analogRead(KNOBPIN1));
-  // Serial.print(" KNOBPIN2= ");
-  // Serial.print(analogRead(KNOBPIN2));
-  // Serial.print(" KNOBPIN3= ");
-  // Serial.println(analogRead(KNOBPIN3));
+  // Serial.print("loop a7= ");
+  // Serial.println(analogRead(7));
+  // Serial.print("loop a5= ");
+  // Serial.println(analogRead(5));
+  // Serial.print("loop a2= ");
+  // Serial.println(analogRead(2));
+  // Serial.print("loop a0= ");
+  // Serial.println(analogRead(0));
+
+  // Serial.println(digitalRead(3));
+  // Serial.println(digitalRead(10));
+  // Serial.println(digitalRead(12));
 
   Serial.println(" ");
   int lgt8f328p = 1;  //  lgt8f328p =4 arduion nano =1;
+
 
   //------------waveType select-------------------------------
   if (analogRead(KNOBPIN2) < 66 * lgt8f328p) {
@@ -141,9 +147,7 @@ void loop() {
   if (ext_injudge == 0) {  //use internal clock , phase function off
     phase = 0;
     //    freq_max = 1+(analogRead(KNOBPIN1))/5;
-    freq_max = 1 + 0.0007 * (1023 - analogRead(KNOBPIN1)) * (1023 - analogRead(KNOBPIN1)) / 32;
-    a3 = analogRead(CVINPin) >> 6;
-
+    freq_max = 1 + 0.0007 * (4096 - analogRead(KNOBPIN1)) * (4096 - analogRead(KNOBPIN1)) / 32;
     freq_max = freq_max - a3;
   } else if (ext_injudge == 1) {  //use external clock , phase function on
     phase = map(analogRead(KNOBPIN1), 0, 1023, 0, 999);
@@ -220,7 +224,7 @@ void loop() {
   if (waveType == 255) {                      //hold v
     if (-30 > knob1_dec || knob1_dec > 30) {  //当切换到hold v时 amp也不是立刻就修改的
       if (tmp_amp != this_v) {                //当旋钮电位发生变化时 才进行amp值得修改
-        // amp = this_v;                         //当旋钮1选择到电压保持时 旋钮3可以修改电压范围
+        amp = this_v;                         //当旋钮1选择到电压保持时 旋钮3可以修改电压范围
       }
       tmp_amp = this_v;
     }
@@ -254,13 +258,9 @@ void loop() {
   // TOP値指定
   OCR1A = (unsigned int)(8000000 / pwm_freq);
 
-  unsigned int bbb = (unsigned int)(8000000 / pwm_freq * duty * amp_rate);
   // Duty比指定
-  OCR1B = bbb;  //这里相当于analogWrite(10);
-
-  //  map(analogRead(KNOBPIN1), 0, 1023, 0, 999)
-  analogWrite(6, map(bbb, 0, 40, 255, 0));  //对第D11引脚进行反向输出
-  Serial.print(OCR1B);
+  OCR1B = (unsigned int)(8000000 / pwm_freq * duty * amp_rate);  //这里相当于analogWrite(10);
+  analogWrite(11, 152);                                          //对第D11引脚进行反向输出
 }
 
 void timer_count() {
@@ -271,7 +271,7 @@ void timer_count() {
   if (set_freq >= freq_max) {
     set_freq = 0;
 
-    wavePosition++;  //波表next
+    wavePosition++;//波表next
     if (wavePosition + phase >= 1000 && waveType != 5) {
       wavePosition = wavePosition - 1000;
     }
