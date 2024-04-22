@@ -2,7 +2,7 @@
 #include <avr/io.h>
 
 #define PWMPIN 10    //输出信号    Output
-#define PWMPIN2 11   //输出信号    Output2
+#define PWMPIN2 6    //输出信号    Output2
 #define EXTCLKPin 3  //输入时钟    Clk In
 #define CVINPin 3    //输入压控    CV In
 #define KNOBPIN1 0   //旋钮1       Freq/Phase/Amp
@@ -15,27 +15,18 @@
 //调试hold v amp调整
 //时钟调试
 
-
 unsigned int pwm_freq = 50000;  // PWM频率。作用到60kHz左右，但取余量为50kHz。
 float duty = 0.5;               // duty比率
 int wavePosition = 0;           //wavePosition
 
-byte waveType = 1;  //
-//0=saw1
-//1=saw2
-//2=sine
-//3=tri
-//4=squ
-//5=random
-//6=steady
+byte waveType = 1;  //波形类型
 
 int set_freq = 1;   //
 int freq_max = 30;  //外部时钟周期（*100usec）
 int amp = 256;      //change pwm duty
 int tmp_amp = 256;  //change pwm duty
 int tmp_a1 = 0;     //change pwm duty
-
-int a0 = 256;  //临时记录a0脚得值
+int lgt8f328p = 1;  //  lgt8f328p =4 / arduion nano =1;
 
 float amp_rate = 1.0;
 int phase = 1;
@@ -72,7 +63,7 @@ int a3 = 0;
 void setup() {
 
   pinMode(PWMPIN, OUTPUT);
-  // pinMode(PWMPIN2, OUTPUT);
+  pinMode(PWMPIN2, OUTPUT);
   pinMode(CVINPin, INPUT);
 
   FlexiTimer2::set(5, 1.0 / 100000, timer_count);  // 50usec/count
@@ -80,7 +71,6 @@ void setup() {
 
   //for development
   Serial.begin(115200);
-  Serial.println("setup!");
 
   // モード指定 hagiwo org
   TCCR1A = 0b00100001;
@@ -98,7 +88,7 @@ void loop() {
 
   Serial.print("  freq= ");
   Serial.print(freq_max);
-  Serial.print("  wave= ");
+  Serial.print("  waveType= ");
   Serial.print(waveType);
   Serial.print("  modulation= ");
   Serial.print(modulation);
@@ -117,25 +107,9 @@ void loop() {
   // Serial.println(analogRead(KNOBPIN3));
 
   Serial.println(" ");
-  int lgt8f328p = 1;  //  lgt8f328p =4 arduion nano =1;
 
   //------------waveType select-------------------------------
-  if (analogRead(KNOBPIN2) < 66 * lgt8f328p) {
-    waveType = 255;  //hold v
-  } else if (analogRead(KNOBPIN2) >= 66 * lgt8f328p && analogRead(KNOBPIN2) < 155 * lgt8f328p) {
-    waveType = 0;  //saw1
-  } else if (analogRead(KNOBPIN2) >= 155 * lgt8f328p && analogRead(KNOBPIN2) < 352 * lgt8f328p) {
-    waveType = 1;  //saw2
-  } else if (analogRead(KNOBPIN2) >= 352 * lgt8f328p && analogRead(KNOBPIN2) < 571 * lgt8f328p) {
-    waveType = 2;  //sin
-  } else if (analogRead(KNOBPIN2) >= 571 * lgt8f328p && analogRead(KNOBPIN2) < 771 * lgt8f328p) {
-    waveType = 3;  //tri
-  } else if (analogRead(KNOBPIN2) >= 771 * lgt8f328p && analogRead(KNOBPIN2) < 939 * lgt8f328p) {
-    waveType = 4;  //squ
-  } else if (analogRead(KNOBPIN2) >= 939 * lgt8f328p) {
-    waveType = 5;  //random
-  }
-
+  waveType = analogRead(KNOBPIN2) >> 7;
 
   //------------phase and internal clock set-------------------------------
   if (ext_injudge == 0) {  //use internal clock , phase function off
@@ -150,50 +124,32 @@ void loop() {
   }
   // freq_max =120;
 
-
   //------------selc modulation-------------------------------
-  if (analogRead(KNOBPIN3) >= 939 * lgt8f328p) {
-    modulation = 0;  //no modulation
-  } else if (analogRead(KNOBPIN3) >= 771 * lgt8f328p && analogRead(KNOBPIN3) < 939 * lgt8f328p) {
-    modulation = 1;  //saw1
-  } else if (analogRead(KNOBPIN3) >= 571 * lgt8f328p && analogRead(KNOBPIN3) < 771 * lgt8f328p) {
-    modulation = 2;  //saw2
-  } else if (analogRead(KNOBPIN3) >= 352 * lgt8f328p && analogRead(KNOBPIN3) < 571 * lgt8f328p) {
-    modulation = 3;  //sin
-  } else if (analogRead(KNOBPIN3) >= 155 * lgt8f328p && analogRead(KNOBPIN3) < 352 * lgt8f328p) {
-    modulation = 4;  //tri
-  } else if (analogRead(KNOBPIN3) >= 31 * lgt8f328p && analogRead(KNOBPIN3) < 155 * lgt8f328p) {
-    modulation = 5;  //squ
-  } else if (analogRead(KNOBPIN3) < 31 * lgt8f328p) {
-    modulation = 6;  //random
-  }
+  modulation = analogRead(KNOBPIN3) >> 7;
 
   switch (modulation) {
-    case 0:
+    case 0:  //no modulation
       break;
-
     case 1:
       phase = phase + (pgm_read_word(&(saw1[wavePosition])));
       break;
-
     case 2:
       phase = phase + (pgm_read_word(&(saw2[wavePosition])));
       break;
-
     case 3:
       phase = phase + (pgm_read_word(&(sine[wavePosition])));
       break;
-
     case 4:
       phase = phase + (pgm_read_word(&(tri[wavePosition])));
       break;
-
     case 5:
       phase = phase + (pgm_read_word(&(squ[wavePosition])));
       break;
-
     case 6:
       phase = phase + (pgm_read_word(&(saw1[random(1, 1000)])));
+      break;
+    case 7:
+      phase = phase + (pgm_read_word(&(tri[random(1, 1000)])));
       break;
   }
 
@@ -217,13 +173,15 @@ void loop() {
   // Serial.println("             ");
 
 
-  if (waveType == 255) {                      //hold v
+  if (waveType == 0) {                        //hold v 电平旋钮1检测逻辑
     if (-30 > knob1_dec || knob1_dec > 30) {  //当切换到hold v时 amp也不是立刻就修改的
       if (tmp_amp != this_v) {                //当旋钮电位发生变化时 才进行amp值得修改
-        // amp = this_v;                         //当旋钮1选择到电压保持时 旋钮3可以修改电压范围
+        amp = this_v;                         //当旋钮1选择到电压保持时 旋钮3可以修改电压范围
       }
       tmp_amp = this_v;
     }
+  } else {
+    amp = 256;  //当不选择hold模式 则电平都开满
   }
   tmp_a1 = analogRead(KNOBPIN1);  //临时记下a1值
 
@@ -235,7 +193,6 @@ void loop() {
   }
 
   //----------clock setting-------------
-
   if (ext_pulse == 1 && old_ext_pulse == 0) {
     old_ext_count_result = ext_count_result;  //twice pulse average
     ext_count_result = ext_count;
@@ -250,17 +207,15 @@ void loop() {
   // モード指定
   TCCR1A = 0b00100001;
   TCCR1B = 0b00010001;  //分周比1
-
   // TOP値指定
   OCR1A = (unsigned int)(8000000 / pwm_freq);
-
   unsigned int bbb = (unsigned int)(8000000 / pwm_freq * duty * amp_rate);
   // Duty比指定
   OCR1B = bbb;  //这里相当于analogWrite(10);
 
   //  map(analogRead(KNOBPIN1), 0, 1023, 0, 999)
-  analogWrite(6, map(bbb, 0, 40, 255, 0));  //对第D11引脚进行反向输出
-  Serial.print(OCR1B);
+  analogWrite(PWMPIN2, map(bbb, 0, 40, 255, 0));  //对第D11引脚进行反向输出
+  // Serial.print(OCR1B);
 }
 
 void timer_count() {
@@ -277,40 +232,33 @@ void timer_count() {
     }
 
     switch (waveType) {
-      case 0:
+      default:  //steady hold v
+        duty = 1;
+        break;
+      case 1:
         duty = (float)(pgm_read_word(&(saw1[wavePosition + phase]))) / 1000;
         break;
-
-      case 1:
+      case 2:
         duty = (float)(pgm_read_word(&(saw2[wavePosition + phase]))) / 1000;
         break;
-
-      case 2:
+      case 3:
         duty = (float)(pgm_read_word(&(sine[wavePosition + phase]))) / 1000;
         break;
-
-      case 3:
+      case 4:
         duty = (float)(pgm_read_word(&(tri[wavePosition + phase]))) / 1000;
         break;
-
-      case 4:
+      case 5:
         duty = (float)(pgm_read_word(&(squ[wavePosition + phase]))) / 1000;
         break;
-    }
-
-    //random
-    if (waveType == 5) {
-      wavePosition++;
-      if (wavePosition >= 250) {
-        wavePosition = 0;
-        duty = random(1, 1000);
-        duty = duty / 1000;
-      }
-    }
-
-    //steady hold v
-    if (waveType == 255) {
-      duty = 1;
+      case 6:  //random
+      case 7:  //random
+        wavePosition++;
+        if (wavePosition >= 250) {
+          wavePosition = 0;
+          duty = random(1, 1000);
+          duty = duty / 1000;
+        }
+        break;
     }
   }
 }

@@ -122,7 +122,7 @@ void loop() {
   // Serial.println(digitalRead(12));
 
   Serial.println(" ");
-  int lgt8f328p = 1;  //  lgt8f328p =4 arduion nano =1;
+  int lgt8f328p = 4;  //  lgt8f328p =4 arduion nano =1;
 
 
   //------------waveType select-------------------------------
