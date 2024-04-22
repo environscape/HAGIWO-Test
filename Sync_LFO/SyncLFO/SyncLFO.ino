@@ -109,27 +109,11 @@ void loop() {
   Serial.println(" ");
 
   //------------waveType select-------------------------------
-  // waveType = analogRead(KNOBPIN2) >> 7;
-  if (analogRead(KNOBPIN2) < 66 * lgt8f328p) {
-    waveType = 255;  //hold v
-  } else if (analogRead(KNOBPIN2) >= 66 * lgt8f328p && analogRead(KNOBPIN2) < 155 * lgt8f328p) {
-    waveType = 0;  //saw1
-  } else if (analogRead(KNOBPIN2) >= 155 * lgt8f328p && analogRead(KNOBPIN2) < 352 * lgt8f328p) {
-    waveType = 1;  //saw2
-  } else if (analogRead(KNOBPIN2) >= 352 * lgt8f328p && analogRead(KNOBPIN2) < 571 * lgt8f328p) {
-    waveType = 2;  //sin
-  } else if (analogRead(KNOBPIN2) >= 571 * lgt8f328p && analogRead(KNOBPIN2) < 771 * lgt8f328p) {
-    waveType = 3;  //tri
-  } else if (analogRead(KNOBPIN2) >= 771 * lgt8f328p && analogRead(KNOBPIN2) < 939 * lgt8f328p) {
-    waveType = 4;  //squ
-  } else if (analogRead(KNOBPIN2) >= 939 * lgt8f328p) {
-    waveType = 5;  //random
-  }
+  waveType = analogRead(KNOBPIN2) >> 7;
 
   //------------phase and internal clock set-------------------------------
   if (ext_injudge == 0) {  //use internal clock , phase function off
     phase = 0;
-    //    freq_max = 1+(analogRead(KNOBPIN1))/5;
     freq_max = 1 + 0.0007 * (1023 - analogRead(KNOBPIN1)) * (1023 - analogRead(KNOBPIN1)) / 32;
     a3 = analogRead(CVINPin) >> 6;
 
@@ -137,28 +121,12 @@ void loop() {
   } else if (ext_injudge == 1) {  //use external clock , phase function on
     phase = map(analogRead(KNOBPIN1), 0, 1023, 0, 999);
   }
-  // freq_max =120;
 
   //------------selc modulation-------------------------------
-  // modulation = analogRead(KNOBPIN3) >> 7;
-  if (analogRead(KNOBPIN3) >= 939 * lgt8f328p) {
-    modulation = 0;  //no modulation
-  } else if (analogRead(KNOBPIN3) >= 771 * lgt8f328p && analogRead(KNOBPIN3) < 939 * lgt8f328p) {
-    modulation = 1;  //saw1
-  } else if (analogRead(KNOBPIN3) >= 571 * lgt8f328p && analogRead(KNOBPIN3) < 771 * lgt8f328p) {
-    modulation = 2;  //saw2
-  } else if (analogRead(KNOBPIN3) >= 352 * lgt8f328p && analogRead(KNOBPIN3) < 571 * lgt8f328p) {
-    modulation = 3;  //sin
-  } else if (analogRead(KNOBPIN3) >= 155 * lgt8f328p && analogRead(KNOBPIN3) < 352 * lgt8f328p) {
-    modulation = 4;  //tri
-  } else if (analogRead(KNOBPIN3) >= 31 * lgt8f328p && analogRead(KNOBPIN3) < 155 * lgt8f328p) {
-    modulation = 5;  //squ
-  } else if (analogRead(KNOBPIN3) < 31 * lgt8f328p) {
-    modulation = 6;  //random
-  }
+  modulation = analogRead(KNOBPIN3) >> 7;
 
   switch (modulation) {
-    case 0:  //no modulation
+    default:  //no modulation
       break;
     case 1:
       phase = phase + (pgm_read_word(&(saw1[wavePosition])));
@@ -184,8 +152,6 @@ void loop() {
   }
 
   //--------------amp set----------------
-  // amp = analogRead(KNOBPIN4); 由于没有额外的旋钮 因此只能共用其他旋钮
-
   int this_am = 0;
   this_am = map(amp, 0, 1023, 1, 100);
   amp_rate = (float)this_am / 100;
@@ -203,7 +169,7 @@ void loop() {
   // Serial.println("             ");
 
 
-  if (waveType == 255) {                      //hold v 电平旋钮1检测逻辑
+  if (waveType == 0) {                        //hold v 电平旋钮1检测逻辑
     if (-30 > knob1_dec || knob1_dec > 30) {  //当切换到hold v时 amp也不是立刻就修改的
       if (tmp_amp != this_v) {                //当旋钮电位发生变化时 才进行amp值得修改
         amp = this_v;                         //当旋钮1选择到电压保持时 旋钮3可以修改电压范围
@@ -256,54 +222,7 @@ void timer_count() {
     set_freq = 0;
 
     wavePosition++;  //波表next
-    if (wavePosition + phase >= 1000 && waveType != 5) {
-      wavePosition = wavePosition - 1000;
-    }
-
-    switch (waveType) {
-      case 0:
-        duty = (float)(pgm_read_word(&(saw1[wavePosition + phase]))) / 1000;
-
-        break;
-      case 1:
-        duty = (float)(pgm_read_word(&(saw2[wavePosition + phase]))) / 1000;
-        break;
-      case 2:
-        duty = (float)(pgm_read_word(&(sine[wavePosition + phase]))) / 1000;
-        break;
-      case 3:
-        duty = (float)(pgm_read_word(&(tri[wavePosition + phase]))) / 1000;
-        break;
-      case 4:
-
-        duty = (float)(pgm_read_word(&(squ[wavePosition + phase]))) / 1000;
-        break;
-    }
-    //random
-    if (waveType == 5) {
-      wavePosition++;
-      if (wavePosition >= 250) {
-        wavePosition = 0;
-        duty = random(1, 1000);
-        duty = duty / 1000;
-      }
-    }
-    //steady hold v
-    if (waveType == 255) {
-      duty = 1;
-    }
-  }
-}
-void timer_count2() {
-
-  ext_count++;
-  set_freq++;
-
-  if (set_freq >= freq_max) {
-    set_freq = 0;
-
-    wavePosition++;  //波表next
-    if (wavePosition + phase >= 1000 && waveType != 5) {
+    if (wavePosition + phase >= 1000 && waveType != 7) {
       wavePosition = wavePosition - 1000;
     }
 
@@ -326,8 +245,8 @@ void timer_count2() {
       case 5:
         duty = (float)(pgm_read_word(&(squ[wavePosition + phase]))) / 1000;
         break;
-      case 6:  //random
-      case 7:  //random
+      case 6:
+      case 7:
         wavePosition++;
         if (wavePosition >= 250) {
           wavePosition = 0;
