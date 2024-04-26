@@ -114,7 +114,7 @@ void loop() {
   //------------phase and internal clock set-------------------------------
   if (ext_injudge == 0) {  //use internal clock , phase function off
     phase = 0;
-    freq_max = 1 + 0.0007 * (1023 - analogRead(KNOBPIN1)) * (1023 - analogRead(KNOBPIN1)) / 32;
+    freq_max = 1 + 0.0007 * (1023 - analogRead(KNOBPIN1)) * (1023 - analogRead(KNOBPIN1)) / 2;
     a3 = analogRead(CVINPin) >> 6;
 
     freq_max = freq_max - a3;
