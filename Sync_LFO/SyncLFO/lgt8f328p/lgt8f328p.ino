@@ -17,7 +17,7 @@
 
 unsigned int pwm_freq = 50000;  // PWM频率。作用到60kHz左右，但取余量为50kHz。
 float duty = 0.5;               // duty比率
-int wavePosition = 0;//wavePosition
+int wavePosition = 0;           //wavePosition
 
 byte waveType = 1;  //
 //0=saw1
@@ -157,19 +157,19 @@ void loop() {
 
   //------------selc modulation-------------------------------
   if (analogRead(KNOBPIN3) >= 939 * lgt8f328p) {
-    modulation = 0;  //no modulation
+    modulation = 6;  //no modulation
   } else if (analogRead(KNOBPIN3) >= 771 * lgt8f328p && analogRead(KNOBPIN3) < 939 * lgt8f328p) {
-    modulation = 1;  //saw1
+    modulation = 5;  //saw1
   } else if (analogRead(KNOBPIN3) >= 571 * lgt8f328p && analogRead(KNOBPIN3) < 771 * lgt8f328p) {
-    modulation = 2;  //saw2
+    modulation = 4;  //saw2
   } else if (analogRead(KNOBPIN3) >= 352 * lgt8f328p && analogRead(KNOBPIN3) < 571 * lgt8f328p) {
     modulation = 3;  //sin
   } else if (analogRead(KNOBPIN3) >= 155 * lgt8f328p && analogRead(KNOBPIN3) < 352 * lgt8f328p) {
-    modulation = 4;  //tri
+    modulation = 2;  //tri
   } else if (analogRead(KNOBPIN3) >= 31 * lgt8f328p && analogRead(KNOBPIN3) < 155 * lgt8f328p) {
-    modulation = 5;  //squ
+    modulation = 1;  //squ
   } else if (analogRead(KNOBPIN3) < 31 * lgt8f328p) {
-    modulation = 6;  //random
+    modulation = 0;  //random
   }
 
   switch (modulation) {
@@ -228,6 +228,8 @@ void loop() {
       }
       tmp_amp = this_v;
     }
+  } else {
+    amp = 1023;  //当不选择hold模式 则电平都开满
   }
   tmp_a1 = analogRead(KNOBPIN1);  //临时记下a1值
 
@@ -271,7 +273,7 @@ void timer_count() {
   if (set_freq >= freq_max) {
     set_freq = 0;
 
-    wavePosition++;//波表next
+    wavePosition++;  //波表next
     if (wavePosition + phase >= 1000 && waveType != 5) {
       wavePosition = wavePosition - 1000;
     }
