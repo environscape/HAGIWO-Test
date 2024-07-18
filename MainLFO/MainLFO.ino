@@ -14,6 +14,8 @@ double wave_position[PIN_NUM] = {};
 double lfo_length = 16384;
 int lfo_type = 0;
 
+int abs_knob = 2048;
+
 void setup() {
   Serial.begin(115200);
 
@@ -22,6 +24,7 @@ void setup() {
   for (int i = 0; i < PIN_NUM; i++)
     pinMode(CV_PIN[i], OUTPUT);
 
+  abs_knob = analogRead(KNOB_PIN);
   showKnobValue();
   delay(3000);
 }
@@ -55,8 +58,11 @@ void loop() {
     return;
   }
 
+  // float knob_coef = (4096 - analogRead(KNOB_PIN)) / 32;  //0-128
+  float knob_coef = (4096 - analogRead(KNOB_PIN)) - (4096 - abs_knob) + 64;  //0-128 通过相对旋钮差值 来获取震荡变化
+  if (knob_coef < 0) knob_coef = 0;
+  if (knob_coef > 128) knob_coef = 128;
 
-  float knob_coef = (4096 - analogRead(KNOB_PIN)) / 32;  //0-128
   for (int i = 0; i < PIN_NUM; i++) {
     if (wave_position[i] > lfo_length) wave_position[i] = 0;  //2^13
     wave_position[i] += knob_coef * coef[i];
@@ -123,6 +129,16 @@ void loop() {
     Serial.print("|");
 
   Serial.print(" \n");
+}
+
+void genCoefValue() {
+  coef[0] = 1;
+  coef[1] = random(0, 300) / 1000 + 0.7;
+  coef[2] = random(0, 200) / 1000 + 0.6;
+  coef[3] = random(0, 200) / 1000 + 0.4;
+  coef[4] = random(0, 200) / 1000 + 0.2;
+  coef[5] = random(0, 200) / 1000 + 0.01;
+  // float coef[PIN_NUM] = { 1, 0.73, 0.57, 0.41, 0.29, 0.13 };
 }
 
 void showKnobValue() {
