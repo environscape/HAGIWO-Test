@@ -56,7 +56,7 @@ void loop() {
   }
 
 
-  float knob_coef = (4096 - analogRead(KNOB_PIN)) / 128;
+  float knob_coef = (4096 - analogRead(KNOB_PIN)) / 32;  //0-128
   for (int i = 0; i < PIN_NUM; i++) {
     if (wave_position[i] > lfo_length) wave_position[i] = 0;  //2^13
     wave_position[i] += knob_coef * coef[i];
@@ -64,9 +64,9 @@ void loop() {
     switch (lfo_type) {
       default:  //Sin
         if (wave_position[i] < lfo_length / 2)
-          cv[i] = (1 - (wave_position[i] / lfo_length * 2)) * 255;
+          cv[i] = (2 * wave_position[i] / lfo_length) * 255;
         else
-          cv[i] = (wave_position[i] / lfo_length * 2) * 255;
+          cv[i] = 2 * (1 - (wave_position[i] / lfo_length)) * 255;
         break;
       case 1:  //Pluse 1
         if (wave_position[i] < lfo_length / 4)
@@ -99,10 +99,13 @@ void loop() {
     }
   }
 
-
-  for (int i = 0; i < PIN_NUM; i++)
-    analogWrite(CV_PIN[i], cv[i]);
-
+  //cv output
+  for (int i = 0; i < PIN_NUM; i++) {
+    int tmp_cv = cv[i];
+    if (tmp_cv < 0) tmp_cv = 0;
+    if (tmp_cv > 255) tmp_cv = 255;
+    analogWrite(CV_PIN[i], tmp_cv);
+  }
 
   Serial.print(" a1=");
   Serial.print((4096 - analogRead(KNOB_PIN)));
@@ -116,6 +119,9 @@ void loop() {
   Serial.print(wave_position[0]);
   Serial.print(" cv=");
   Serial.print(cv[0]);
+  for (float i = 0; i < cv[0] / 4; i++)
+    Serial.print("|");
+
   Serial.print(" \n");
 }
 
