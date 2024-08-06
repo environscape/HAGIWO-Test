@@ -62,7 +62,7 @@ void loop() {
   // float knob_coef = (4096 - analogRead(KNOB_PIN)) - (4096 - abs_knob) + 64;  //0-128 通过相对旋钮差值 来获取震荡变化
   // if (knob_coef < 0) knob_coef = 0;
   // if (knob_coef > 128) knob_coef = 128;
-  float knob_coef = (4096 - analogRead(KNOB_PIN));
+  float knob_coef = (4096 - analogRead(KNOB_PIN)) + (analogRead(CV_IN));  //获取旋钮值与压控
   for (int i = 0; i < PIN_NUM; i++) {
     if (wave_position[i] > lfo_length) wave_position[i] = 0;  //2^13
     wave_position[i] += knob_coef * coef[i];
