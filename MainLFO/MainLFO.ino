@@ -29,6 +29,7 @@ void setup() {
   delay(3000);
 }
 
+int tmp_long_btn = 0;
 bool tmp_btn = 0;
 bool tmp_clk = 0;
 
@@ -36,12 +37,21 @@ void loop() {
   //read btn
   if (digitalRead(BUTTON_PIN) == 0 && tmp_btn == 1) {
     tmp_btn = 0;
-    lfo_type++;
-    if (lfo_type > 7) lfo_type = 0;
+    genCoefValue();  //生成随机变化
+  }
+  //long btn
+  if (!digitalRead(BUTTON_PIN)) {
+    tmp_long_btn++;
   }
   if (digitalRead(BUTTON_PIN) == 1 && tmp_btn == 0) {
     tmp_btn = 1;
+    if (tmp_long_btn > 100) {  //长按事件响应
+      lfo_type++;              //lfo type change
+      if (lfo_type > 7) lfo_type = 0;
+    }
+    tmp_long_btn = 0;
   }
+
   //read clk
   if (digitalRead(CLK_IN) == 1 && tmp_clk == 0) {
     tmp_clk = 1;
@@ -51,21 +61,11 @@ void loop() {
     tmp_clk = 0;
   }
 
-
-  //view knob value
-  // if (!digitalRead(BUTTON_PIN)) {
-  //   showKnobValue();
-  //   return;
-  // }
-
-  // float knob_coef = (4096 - analogRead(KNOB_PIN)) / 32;  //0-128
-  // float knob_coef = (4096 - analogRead(KNOB_PIN)) - (4096 - abs_knob) + 64;  //0-128 通过相对旋钮差值 来获取震荡变化
-  // if (knob_coef < 0) knob_coef = 0;
-  // if (knob_coef > 128) knob_coef = 128;
+  //根据旋钮、cv来设置频率与波形
   float knob_coef = (4096 - analogRead(KNOB_PIN)) + (analogRead(CV_IN));  //获取旋钮值与压控
   for (int i = 0; i < PIN_NUM; i++) {
     if (wave_position[i] > lfo_length) wave_position[i] = 0;  //2^13
-    wave_position[i] += knob_coef * coef[i];
+    wave_position[i] += knob_coef * coef[i] / 2;
     // wave select
     switch (lfo_type) {
       default:  //Sin
