@@ -135,16 +135,14 @@ void loop() {
       phase = phase + (pgm_read_word(&(saw2[wavePosition])));
       break;
     case 3:
+    case 4:
       phase = phase + (pgm_read_word(&(sine[wavePosition])));
       break;
-    case 4:
+    case 5:
       phase = phase + (pgm_read_word(&(tri[wavePosition])));
       break;
-    case 5:
-      phase = phase + (pgm_read_word(&(squ[wavePosition])));
-      break;
     case 6:
-      phase = phase + (pgm_read_word(&(saw1[random(1, 1000)])));
+      phase = phase + (pgm_read_word(&(squ[wavePosition])));
       break;
     case 7:
       phase = phase + (pgm_read_word(&(tri[random(1, 1000)])));
@@ -229,24 +227,31 @@ void timer_count() {
     switch (waveType) {
       default:  //steady hold v
         duty = 1;
+        digitalWrite(4, 0);
         break;
       case 1:
         duty = (float)(pgm_read_word(&(saw1[wavePosition + phase]))) / 1000;
+        digitalWrite(4, 1);
         break;
       case 2:
         duty = (float)(pgm_read_word(&(saw2[wavePosition + phase]))) / 1000;
+        digitalWrite(4, 0);
         break;
       case 3:
-        duty = (float)(pgm_read_word(&(sine[wavePosition + phase]))) / 1000;
-        break;
       case 4:
-        duty = (float)(pgm_read_word(&(tri[wavePosition + phase]))) / 1000;
+        duty = (float)(pgm_read_word(&(sine[wavePosition + phase]))) / 1000;
+        digitalWrite(4, 1);
         break;
       case 5:
-        duty = (float)(pgm_read_word(&(squ[wavePosition + phase]))) / 1000;
+        duty = (float)(pgm_read_word(&(tri[wavePosition + phase]))) / 1000;
+        digitalWrite(4, 0);
         break;
       case 6:
+        duty = (float)(pgm_read_word(&(squ[wavePosition + phase]))) / 1000;
+        digitalWrite(4, 1);
+        break;
       case 7:
+        digitalWrite(4, 0);
         wavePosition++;
         if (wavePosition >= 250) {
           wavePosition = 0;
