@@ -9,13 +9,7 @@
 #define KNOBPIN2 1   //旋钮2       WaveType
 #define KNOBPIN3 2   //旋钮3       Modulation
 
-
-//获取到各个引脚并打印日志 ok
-//调整震荡频率
-//调试hold v amp调整
-//时钟调试
-
-unsigned int pwm_freq = 50000;  // PWM频率。作用到60kHz左右，但取余量为50kHz。
+unsigned int pwm_freq = 60000;  // PWM频率。提高到60kHz
 float duty = 0.5;               // duty比率
 int wavePosition = 0;           //wavePosition
 
@@ -69,15 +63,12 @@ void setup() {
   FlexiTimer2::set(5, 1.0 / 100000, timer_count);  // 50usec/count
   FlexiTimer2::start();
 
-  //for development
   Serial.begin(115200);
 
-  // モード指定 hagiwo org
-  TCCR1A = 0b00100001;
-  TCCR1B = 0b00010001;  //分周比1
-
-  //新的快速pwm
-  // TCCR1A = 0b00100011;
+  // 使用另一种快速PWM模式
+  TCCR1A = 0b00100011;
+  TCCR1B = 0b00010001;
+  // TCCR1A = 0b00100001;
   // TCCR1B = 0b00010001;
   // timer2 = micros();
 }
@@ -98,8 +89,7 @@ void loop() {
   // Serial.print(ext_injudge);
   // Serial.print("  freq mod= ");
   // Serial.println(a3);
-
-  // Serial.print(" KNOBPIN1= ");
+   // Serial.print(" KNOBPIN1= ");
   // Serial.print(analogRead(KNOBPIN1));
   // Serial.print(" KNOBPIN2= ");
   // Serial.print(analogRead(KNOBPIN2));
@@ -119,7 +109,7 @@ void loop() {
 
     freq_max = freq_max - a3;
   } else if (ext_injudge == 1) {  //use external clock , phase function on
-    phase = map(analogRead(KNOBPIN1), 0, 1023, 0, 999);
+    // phase = map(analogRead(KNOBPIN1), 0, 1023, 0, 999);
   }
 
   //------------selc modulation-------------------------------
@@ -194,12 +184,12 @@ void loop() {
     freq_max = ext_period;
   }
 
-  if (old_ext_pulse == 0 && ext_pulse == 1) {  //外部入力が有→無のとき
+  if (old_ext_pulse == 0 && ext_pulse == 0) {  //外部入力が有→無のとき
     ext_count = 0;
     wavePosition = 0;
   }
   // モード指定
-  TCCR1A = 0b00100001;
+  TCCR1A = 0b00100011;
   TCCR1B = 0b00010001;  //分周比1
   // TOP値指定
   OCR1A = (unsigned int)(8000000 / pwm_freq);
